@@ -8406,7 +8406,7 @@ async function calcSubmit(e) {
     return { label, value: controls.join(' ') };
   });
   const fields = fieldEntries.map(field => `${field.label}: ${field.value}`);
-  const fieldValue = (labelPart) => fieldEntries.find(field => field.label.includes(labelPart))?.value || '';
+  const fieldValue = (labelPart) => fieldEntries.find(field => field.label.toLowerCase().includes(labelPart.toLowerCase()))?.value || '';
   const subject = `Заявка Atomics: ${fields[0]?.replace('Ваше имя: ', '') || 'новый проект'}`;
   const body = [
     'Новая заявка с сайта Atomics',
@@ -8430,7 +8430,9 @@ async function calcSubmit(e) {
   const payload = {
     name: fieldValue('Ваше имя'),
     phone: fieldValue('Телефон'),
-    messenger: fieldValue('мессенджер'),
+    email: fieldValue('Email'),
+    messenger: fieldValue('связаться'),
+    deadline: fieldValue('сроки'),
     project_sphere: calcState.answers.industry || '',
     project_stage: calcState.answers.stage || '',
     has_team: calcState.answers.team || '',
@@ -8463,7 +8465,8 @@ async function calcSubmit(e) {
       },
       body: JSON.stringify(payload)
     });
-    status.textContent = 'Спасибо. Заявка отправлена — мы свяжемся с вами в указанном канале связи.';
+    status.textContent = 'Спасибо. Заявка отправлена — открываем страницу с дальнейшими шагами.';
+    window.location.href = 'thank-you.html';
   } catch (error) {
     console.warn('Lead endpoint failed', error);
     status.textContent = 'Не удалось отправить заявку. Проверьте соединение и попробуйте ещё раз.';
