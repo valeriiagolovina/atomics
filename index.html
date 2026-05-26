@@ -1771,6 +1771,8 @@ section { padding: 140px 0; }
   overflow: hidden;
   position: relative;
   padding: 32px 0;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 .marquee-track {
   display: flex; gap: 64px;
@@ -1802,6 +1804,25 @@ section { padding: 140px 0; }
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
+}
+@media (hover: none), (pointer: coarse) {
+  .marquee {
+    overflow-x: auto;
+    overflow-y: hidden;
+    cursor: grab;
+    touch-action: pan-x;
+    scrollbar-width: none;
+  }
+
+  .marquee::-webkit-scrollbar {
+    display: none;
+  }
+
+  .marquee-track {
+    animation: none;
+    transform: none;
+    padding: 0 20px;
+  }
 }
 .industries-band::before, .industries-band::after {
   content: "";
