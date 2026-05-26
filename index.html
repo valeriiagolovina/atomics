@@ -8393,33 +8393,20 @@ function computeRec() {
   document.getElementById('recText').textContent = text;
 }
 
-const TELEGRAM_BOT_USERNAME = 'atomics_launch_bot';
-const TELEGRAM_CHANNEL_URL = 'https://t.me/atomics_launch';
-
-function getTelegramLeadUrl(payload) {
-  const leadId = `lead_${Date.now().toString(36)}`;
-  try {
-    localStorage.setItem(`atomics_${leadId}`, JSON.stringify(payload));
-  } catch (error) {
-    // Telegram still opens if local storage is unavailable.
-  }
-
-  if (TELEGRAM_BOT_USERNAME) {
-    return `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${encodeURIComponent(leadId)}`;
-  }
-
-  return TELEGRAM_CHANNEL_URL;
-}
+const LEAD_ENDPOINT = 'https://script.google.com/macros/s/AKfycbytuiCZXR-rU47fjyC_R3IIvcL-T-3hqdLsAT_J1-uFOv8rgm6c2ZhJ5WGsplIo-1dAjg/exec';
 
 async function calcSubmit(e) {
   e.preventDefault();
   collectCalcInputs();
   const form = e.currentTarget;
-  const fields = [...form.querySelectorAll('.field')].map(field => {
+  const submitButton = form.querySelector('button[type="submit"]');
+  const fieldEntries = [...form.querySelectorAll('.field')].map(field => {
     const label = field.querySelector('label')?.childNodes[0]?.textContent.trim() || 'Поле';
     const controls = [...field.querySelectorAll('input, select, textarea')].map(control => control.value.trim()).filter(Boolean);
-    return `${label}: ${controls.join(' ')}`;
+    return { label, value: controls.join(' ') };
   });
+  const fields = fieldEntries.map(field => `${field.label}: ${field.value}`);
+  const fieldValue = (labelPart) => fieldEntries.find(field => field.label.includes(labelPart))?.value || '';
   const subject = `Заявка Atomics: ${fields[0]?.replace('Ваше имя: ', '') || 'новый проект'}`;
   const body = [
     'Новая заявка с сайта Atomics',
@@ -8438,8 +8425,20 @@ async function calcSubmit(e) {
     form.appendChild(status);
   }
   status.textContent = 'Отправляем заявку...';
+  if (submitButton) submitButton.disabled = true;
 
   const payload = {
+    name: fieldValue('Ваше имя'),
+    phone: fieldValue('Телефон'),
+    messenger: fieldValue('мессенджер'),
+    project_sphere: calcState.answers.industry || '',
+    project_stage: calcState.answers.stage || '',
+    has_team: calcState.answers.team || '',
+    services: calcState.answers.goal || '',
+    budget: calcState.answers.budget || '',
+    utm_source: new URLSearchParams(window.location.search).get('utm_source') || '',
+    utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || '',
+    utm_content: new URLSearchParams(window.location.search).get('utm_content') || '',
     subject,
     message: body,
     answers: calcState.answers,
@@ -8454,11 +8453,23 @@ async function calcSubmit(e) {
       submittedAt: new Date().toISOString()
     }
   };
-  status.textContent = TELEGRAM_BOT_USERNAME
-    ? 'Открываем Telegram-бота...'
-    : 'Открываем Telegram-канал. Для заявки через бота добавьте username бота в код.';
 
-  window.location.href = getTelegramLeadUrl(payload);
+  try {
+    await fetch(LEAD_ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify(payload)
+    });
+    status.textContent = 'Спасибо. Заявка отправлена — мы свяжемся с вами в указанном канале связи.';
+  } catch (error) {
+    console.warn('Lead endpoint failed', error);
+    status.textContent = 'Не удалось отправить заявку. Проверьте соединение и попробуйте ещё раз.';
+    if (submitButton) submitButton.disabled = false;
+  }
+
   return false;
 }
 
