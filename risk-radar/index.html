@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Risk & Blind Spot Radar — Atomics</title>
+  <meta name="description" content="2-минутная карта зон внимания проекта до разработки.">
+  <meta name="theme-color" content="#f4efe1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell" aria-live="polite">
+    <div class="radar-frame">
+      <header class="topline">
+        <a class="brand" href="/" aria-label="Atomics">Atomics<span>.</span></a>
+        <div class="mode-pill">Risk radar</div>
+      </header>
+
+      <section class="quiz-card" id="quizCard">
+        <div class="progress-wrap" id="progressWrap" hidden>
+          <div class="progress-meta">
+            <span id="stepCounter">1/6</span>
+            <span>карта зон внимания</span>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+        </div>
+
+        <div class="screen active" data-screen="intro">
+          <div class="intro-orbit" aria-hidden="true">
+            <div class="scan-ring"></div>
+            <div class="scan-dot"></div>
+            <div class="scan-core"></div>
+          </div>
+          <p class="eyebrow">секретный mini app</p>
+          <h1><span class="nowrap">Risk & Blind</span> Spot Radar</h1>
+          <p class="lead">2-минутная карта рисков проекта до разработки.</p>
+
+          <div class="check-panel">
+            <span>Проверим</span>
+            <ul>
+              <li>где проект может сжечь бюджет до результата</li>
+              <li>что проверить до команды, кода и спринтов</li>
+              <li>какой следующий шаг безопаснее</li>
+            </ul>
+          </div>
+
+          <button class="primary-action" type="button" data-start>Начать</button>
+        </div>
+
+        <div class="screen" data-screen="question">
+          <p class="eyebrow" id="questionEyebrow">зона внимания</p>
+          <h2 id="questionTitle"></h2>
+          <div class="options" id="options"></div>
+          <p class="hint" id="questionHint"></p>
+          <div class="actions">
+            <button class="ghost-action" type="button" data-back>Назад</button>
+            <button class="primary-action next-action" type="button" data-next disabled>Дальше</button>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="final">
+          <p class="eyebrow">radar complete</p>
+          <h2>Risk Radar собран.</h2>
+          <p class="lead">Мы объединили данные с сайта и ваши ответы, чтобы подготовить персональный отчёт без лишних уточнений.</p>
+          <div class="check-panel">
+            <span>В отчёте покажем</span>
+            <ul>
+              <li>сильную сторону проекта</li>
+              <li>главные зоны внимания</li>
+              <li>что проверить до разработки</li>
+              <li>какой первый шаг безопаснее</li>
+            </ul>
+          </div>
+          <div class="actions final-actions">
+            <button class="ghost-action" type="button" data-back-final>Назад</button>
+            <button class="primary-action" type="button" data-submit>Передать на разбор</button>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="success">
+          <div class="success-mark" aria-hidden="true"></div>
+          <p class="eyebrow">готово</p>
+          <h2>Данные подготовлены.</h2>
+          <p class="lead">Передадим консультанту карту зон внимания и вернёмся с безопасным следующим шагом.</p>
+          <a class="secondary-link" href="https://t.me/atomics_launch" target="_blank" rel="noopener noreferrer">Следить за Atomics в Telegram</a>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
