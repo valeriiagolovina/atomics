@@ -4213,6 +4213,11 @@ body {
     width: 220px;
   }
 }
+@media (hover: none), (pointer: coarse) {
+  .shelf-book small {
+    display: none;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .shelf-track {
     animation: none;
@@ -8366,6 +8371,70 @@ section {
     });
   }, { rootMargin: '160px 0px', threshold: 0.01 });
   animatedBlocks.forEach((block) => observer.observe(block));
+})();
+
+(() => {
+  const marquee = document.querySelector('.marquee');
+  const track = document.querySelector('.marquee-track');
+  const touchLike = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!marquee || !track || !touchLike || reduceMotion) return;
+
+  let isPaused = false;
+  let rafId = 0;
+  let lastTime = 0;
+  let resumeTimer = 0;
+  const speed = 0.058;
+
+  function cycleWidth() {
+    return Math.max(1, track.scrollWidth / 2);
+  }
+
+  function normalizeScroll() {
+    const half = cycleWidth();
+    if (marquee.scrollLeft >= half) marquee.scrollLeft -= half;
+    if (marquee.scrollLeft < 0) marquee.scrollLeft += half;
+  }
+
+  function pauseMarquee() {
+    isPaused = true;
+    window.clearTimeout(resumeTimer);
+  }
+
+  function resumeMarquee(delay = 900) {
+    window.clearTimeout(resumeTimer);
+    resumeTimer = window.setTimeout(() => {
+      normalizeScroll();
+      isPaused = false;
+      lastTime = performance.now();
+    }, delay);
+  }
+
+  function tick(time) {
+    if (!lastTime) lastTime = time;
+    const delta = Math.min(50, time - lastTime);
+    lastTime = time;
+
+    if (!isPaused) {
+      marquee.scrollLeft += delta * speed;
+      normalizeScroll();
+    }
+
+    rafId = window.requestAnimationFrame(tick);
+  }
+
+  marquee.addEventListener('pointerdown', pauseMarquee, { passive: true });
+  marquee.addEventListener('pointerup', () => resumeMarquee(), { passive: true });
+  marquee.addEventListener('pointercancel', () => resumeMarquee(), { passive: true });
+  marquee.addEventListener('touchend', () => resumeMarquee(), { passive: true });
+  marquee.addEventListener('scroll', () => {
+    if (isPaused) window.clearTimeout(resumeTimer);
+  }, { passive: true });
+
+  rafId = window.requestAnimationFrame(tick);
+  window.addEventListener('pagehide', () => {
+    if (rafId) window.cancelAnimationFrame(rafId);
+  });
 })();
 
 (() => {
