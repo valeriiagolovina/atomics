@@ -8094,6 +8094,45 @@ section {
 </div>
 
 <script>
+const METRIKA_COUNTER_ID = 109966687;
+const trackedCalcSteps = new Set();
+let calcStarted = false;
+
+function trackGoal(target, params = {}) {
+  if (typeof window.ym !== 'function') return;
+  window.ym(METRIKA_COUNTER_ID, 'reachGoal', target, {
+    page: window.location.pathname,
+    title: document.title,
+    ...params
+  });
+}
+
+document.addEventListener('click', (event) => {
+  const link = event.target.closest('a');
+  if (!link) return;
+
+  const href = link.getAttribute('href') || '';
+  const text = link.textContent.trim().replace(/\s+/g, ' ');
+  const params = {
+    text,
+    href,
+    section: link.closest('section')?.id || link.closest('footer')?.tagName.toLowerCase() || 'global'
+  };
+
+  if (href === '#calc') {
+    trackGoal('cta_estimate_click', params);
+  } else if (href.includes('calendar.app.google')) {
+    trackGoal('calendar_click', params);
+  } else if (href.includes('t.me/atomics_launch')) {
+    trackGoal('telegram_click', params);
+  } else if (link.classList.contains('media-tile')) {
+    trackGoal('media_click', {
+      ...params,
+      resource: link.querySelector('h3')?.textContent.trim() || text
+    });
+  }
+});
+
 (() => {
   const canvas = document.getElementById('fogMapCanvas');
   if (!canvas) return;
@@ -8481,11 +8520,22 @@ function renderProgress() {
     progressEl.appendChild(pip);
   }
 }
+function trackCalcStep(n) {
+  const stepNumber = n + 1;
+  const goalName = stepNumber === calcState.total ? 'calc_contacts_view' : `calc_step_${stepNumber}`;
+  if (trackedCalcSteps.has(goalName)) return;
+  trackedCalcSteps.add(goalName);
+  trackGoal(goalName, {
+    step: stepNumber,
+    answers: { ...calcState.answers }
+  });
+}
 function showStep(n, shouldScroll = false) {
   stepsEl.forEach(s => s.classList.remove('active'));
   stepsEl[n].classList.add('active');
   calcState.step = n;
   renderProgress();
+  trackCalcStep(n);
   if (shouldScroll && window.matchMedia('(max-width: 760px)').matches) {
     document.querySelector('#calc .calc-quiz')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -8508,6 +8558,13 @@ document.querySelectorAll('.calc-options').forEach(group => {
   group.addEventListener('click', e => {
     const option = e.target.closest('.calc-opt');
     if (!option || !group.contains(option)) return;
+    if (!calcStarted) {
+      calcStarted = true;
+      trackGoal('calc_start', {
+        first_question: group.dataset.name || '',
+        first_answer: option.dataset.value || option.textContent.trim().replace(/\s+/g, ' ')
+      });
+    }
     if (group.dataset.multiple === 'true') {
       if (option.textContent.trim() === 'Пока не ясно') {
         group.querySelectorAll('.calc-opt').forEach(b => b.classList.remove('selected'));
@@ -8659,6 +8716,14 @@ async function calcSubmit(e) {
         'Content-Type': 'text/plain;charset=utf-8'
       },
       body: JSON.stringify(payload)
+    });
+    trackGoal('lead_submit', {
+      recommendation: payload.recommendation.title,
+      project_sphere: payload.project_sphere,
+      project_stage: payload.project_stage,
+      services: payload.services,
+      budget: payload.budget,
+      messenger: payload.messenger
     });
     status.textContent = 'Спасибо. Заявка отправлена — открываем страницу с дальнейшими шагами.';
     window.location.href = 'thank-you.html';
